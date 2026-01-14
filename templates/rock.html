@@ -1,0 +1,198 @@
+<style>
+    @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap');
+
+/* 🌿 Holographic Green Theme */
+body {
+    background: linear-gradient(135deg, #0f1c0e, #092012);
+    color: #b0ff9d;
+    font-family: 'Orbitron', sans-serif;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+}
+
+.container {
+    background: rgba(0, 20, 0, 0.25);
+    border: 2px solid #00ff5c;
+    border-radius: 20px;
+    padding: 40px 30px;
+    width: 450px;
+    box-shadow: 0 0 25px #00ff5c, 0 0 50px #33ff88 inset;
+    backdrop-filter: blur(20px);
+    text-align: center;
+}
+
+h1 {
+    color: #00ff5c;
+    text-shadow: 0 0 10px #00ff5c, 0 0 20px #33ff88, 0 0 35px #66ff99;
+    font-size: 26px;
+    margin-bottom: 30px;
+    animation: neonPulse 2s infinite alternate;
+}
+
+@keyframes neonPulse {
+    0% { text-shadow: 0 0 5px #00ff5c, 0 0 15px #33ff88; }
+    100% { text-shadow: 0 0 15px #00ff5c, 0 0 35px #33ff88; }
+}
+
+label {
+    display: block;
+    margin-top: 15px;
+    font-weight: bold;
+    color: #b0ff9d;
+    text-shadow: 0 0 3px #33ff88;
+}
+
+input, select {
+    width: 100%;
+    padding: 12px;
+    margin-top: 5px;
+    border-radius: 10px;
+    border: 1px solid #00ff5c;
+    background: rgba(0, 50, 0, 0.3);
+    color: #b0ff9d;
+    font-size: 16px;
+    box-shadow: 0 0 8px #33ff88 inset, 0 0 10px #00ff5c;
+    transition: all 0.3s ease-in-out;
+}
+
+input:focus, select:focus {
+    border-color: #33ff88;
+    box-shadow: 0 0 15px #66ff99, 0 0 25px #00ff5c inset;
+    outline: none;
+}
+
+button {
+    margin-top: 20px;
+    padding: 12px;
+    width: 100%;
+    font-size: 16px;
+    font-weight: bold;
+    color: #000;
+    background: linear-gradient(135deg, #00ff5c, #33ff88);
+    border: none;
+    border-radius: 12px;
+    cursor: pointer;
+    box-shadow: 0 0 15px #00ff5c, 0 0 25px #33ff88 inset;
+    transition: all 0.3s ease-in-out;
+}
+
+button:hover {
+    transform: scale(1.05);
+    box-shadow: 0 0 25px #00ff5c, 0 0 45px #33ff88 inset;
+}
+
+#suggestionsList {
+    margin-top: 20px;
+    text-align: left;
+    list-style: disc;
+    padding-left: 20px;
+    color: #b0ff9d;
+}
+
+#suggestionsList li {
+    margin: 8px 0;
+    text-shadow: 0 0 5px #33ff88;
+}
+
+/* Translation & Speak section */
+#languageSelect {
+    margin-top: 10px;
+    padding: 8px;
+    border-radius: 10px;
+    border: 1px solid #00ff5c;
+    background: rgba(0, 50, 0, 0.3);
+    color: #b0ff9d;
+    box-shadow: 0 0 8px #33ff88 inset;
+}
+
+#translateBtn, #speakBtn {
+    margin-top: 10px;
+    margin-left: 5px;
+    padding: 8px 12px;
+    border-radius: 10px;
+    border: none;
+    background: linear-gradient(135deg, #00ff5c, #33ff88);
+    color: #000;
+    font-weight: bold;
+    cursor: pointer;
+    box-shadow: 0 0 12px #00ff5c inset, 0 0 20px #33ff88;
+    transition: all 0.3s ease-in-out;
+}
+
+#translateBtn:hover, #speakBtn:hover {
+    transform: scale(1.05);
+    box-shadow: 0 0 25px #00ff5c, 0 0 40px #33ff88 inset;
+}
+
+</style>
+<div class="container">
+    <h1>🌱 Smart Farming Cost Optimization</h1>
+    <form method="POST" id="farmForm">
+        <!-- Form inputs -->
+        <label>Crop Name:</label>
+        <input type="text" name="crop_name" required>
+        <label>Field Area (ha):</label>
+        <input type="number" name="area" step="0.1" required>
+        <label>Fertilizer (kg/ha):</label>
+        <input type="number" name="fertilizer" step="0.1" required>
+        <label>Pesticide (kg/ha):</label>
+        <input type="number" name="pesticide" step="0.1" required>
+        <label>Irrigation Efficiency (0-1):</label>
+        <input type="number" name="irrigation_efficiency" step="0.01" min="0" max="1" value="0.7">
+        <label>Previous Crop (optional):</label>
+        <input type="text" name="previous_crop">
+
+        <button type="submit">Get Suggestions</button>
+    </form>
+
+    {% if suggestions %}
+    <h2>💡 Suggestions:</h2>
+    <ul id="suggestionsList">
+        {% for s in suggestions %}
+        <li>{{ s }}</li>
+        {% endfor %}
+    </ul>
+
+    <div style="margin-top:10px;">
+        <label>Select Language:</label>
+        <select id="languageSelect">
+            <option value="English">English</option>
+            <option value="Hindi">Hindi</option>
+            <option value="Spanish">Spanish</option>
+            <option value="Tamil">Tamil</option>
+            <option value="French">French</option>
+        </select>
+        <button id="translateBtn">Translate</button>
+        <button id="speakBtn">Speak</button>
+    </div>
+    {% endif %}
+</div>
+
+<script>
+document.getElementById("translateBtn").addEventListener("click", async () => {
+    const suggestions = Array.from(document.querySelectorAll("#suggestionsList li")).map(li => li.textContent);
+    const language = document.getElementById("languageSelect").value;
+
+    const response = await fetch("/translate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ suggestions, language })
+    });
+    const data = await response.json();
+    const list = document.getElementById("suggestionsList");
+    list.innerHTML = "";
+    data.translated.forEach(s => {
+        const li = document.createElement("li");
+        li.textContent = s;
+        list.appendChild(li);
+    });
+});
+
+document.getElementById("speakBtn").addEventListener("click", () => {
+    const suggestions = Array.from(document.querySelectorAll("#suggestionsList li")).map(li => li.textContent);
+    const msg = new SpeechSynthesisUtterance(suggestions.join(". "));
+    window.speechSynthesis.speak(msg);
+});
+</script>

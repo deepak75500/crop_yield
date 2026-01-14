@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Leaf Disease Analyzer</title>
+<style>
+    @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap');
+
+    /* BODY & BACKGROUND */
+    body {
+        font-family: 'Orbitron', sans-serif;
+        margin: 0;
+        padding: 0;
+        height: 100vh;
+        background: radial-gradient(circle at center, #001100 0%, #000000 100%);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        overflow: hidden;
+        color: #00ff44;
+    }
+
+    /* CONTAINER */
+    .container {
+    width: 650px;
+    padding: 40px;
+    background: rgba(0, 40, 0, 0.7);
+    border-radius: 20px;
+    box-shadow: 0 0 40px #00ff44, 0 0 80px #00ff44 inset;
+    backdrop-filter: blur(15px);
+    position: relative;
+    height: 80vh;          /* add height */
+    overflow-y: auto;      /* enable scrolling */
+    overflow-x: hidden;    /* no horizontal scroll */
+}
+
+/* SCANNING LINES ANIMATION */
+.container::before {
+    content: '';
+    position: absolute;      /* IMPORTANT */
+    z-index: -1;             /* KEEP BEHIND CONTENT */
+    top: -100%;
+    left: 0;
+    width: 100%;
+    height: 200%;
+    background: linear-gradient(
+        to bottom,
+        rgba(0,255,0,0.05) 0%,
+        rgba(0,255,0,0.2) 50%,
+        rgba(0,255,0,0.05) 100%
+    );
+    transform: rotate(45deg);
+    animation: scan 3s linear infinite;
+    pointer-events: none;    /* prevent blocking scroll */
+}
+
+    @keyframes scan {
+        0% { top: -100%; }
+        100% { top: 100%; }
+    }
+
+    /* HEADINGS */
+    h1 {
+        text-align: center;
+        font-size: 2.8em;
+        color: #00ff44;
+        text-shadow: 0 0 10px #00ff44, 0 0 20px #00ff44, 0 0 30px #00ff44;
+        animation: flicker 2s infinite;
+        margin-bottom: 20px;
+    }
+
+    h2 {
+        font-size: 1.8em;
+        color: #00ff44;
+        text-shadow: 0 0 5px #00ff44, 0 0 10px #00ff44;
+        margin-top: 30px;
+        margin-bottom: 10px;
+    }
+
+    @keyframes flicker {
+        0%, 19%, 21%, 23%, 25%, 54%, 56%, 100% { opacity: 1; }
+        20%, 22%, 24%, 55% { opacity: 0.5; }
+    }
+
+    /* INPUT FILE */
+    input[type=file] {
+        width: 100%;
+        padding: 12px;
+        border: 1px solid #00ff44;
+        border-radius: 10px;
+        background: rgba(0, 50, 0, 0.3);
+        color: #caffca;
+        box-shadow: 0 0 5px #00ff44 inset;
+        transition: all 0.3s ease;
+    }
+    input[type=file]:hover {
+        box-shadow: 0 0 15px #00ff44 inset;
+    }
+
+    /* BUTTON */
+    button {
+        width: 100%;
+        padding: 14px;
+        margin-top: 15px;
+        background: linear-gradient(90deg, #00ff44, #007700);
+        border: none;
+        border-radius: 12px;
+        color: #001100;
+        font-size: 1.2em;
+        font-weight: bold;
+        cursor: pointer;
+        box-shadow: 0 0 15px #00ff44, 0 0 30px #00ff44 inset;
+        transition: all 0.3s ease;
+    }
+    button:hover {
+        box-shadow: 0 0 25px #00ff88, 0 0 50px #00ff88 inset;
+        transform: scale(1.05);
+    }
+
+    /* PRE BLOCKS */
+    pre {
+        background: rgba(0, 50, 0, 0.4);
+        padding: 15px;
+        border-radius: 12px;
+        box-shadow: 0 0 15px #00ff44 inset;
+        overflow-x: auto;
+        color: #caffca;
+        font-family: 'Courier New', monospace;
+        transition: all 0.3s ease;
+        position: relative;
+    }
+
+    /* LOADING EFFECT */
+    pre.loading::after {
+        content: '⚡';
+        position: absolute;
+        overflow-y: hidden;
+        right: 10px;
+        top: 10px;
+        font-size: 1.2em;
+        animation: pulse 1s infinite;
+    }
+
+    @keyframes pulse {
+        0%, 100% { opacity: 1; transform: scale(1); }
+        50% { opacity: 0.3; transform: scale(1.2); }
+    }
+
+</style>
+</head>
+<body>
+<div class="container">
+    <h1>🌿 Leaf Disease Analyzer</h1>
+    <form id="leafForm">
+        <input type="file" name="leaf_image" accept="image/*" required>
+        <button type="submit">Analyze Leaf</button>
+    </form>
+
+    <h2>📝 Extracted Symptoms</h2>
+    <pre id="symptoms"></pre>
+
+    <h2>🤖 Diagnosis</h2>
+    <pre id="diagnosis"></pre>
+</div>
+
+<script>
+document.getElementById("leafForm").addEventListener("submit", async function(e){
+    e.preventDefault();
+    const form = e.target;
+    const fileInput = form.leaf_image.files[0];
+    if (!fileInput) return alert("Please select an image!");
+
+    const formData = new FormData();
+    formData.append("leaf_image", fileInput);
+
+    const symptomsPre = document.getElementById("symptoms");
+    const diagnosisPre = document.getElementById("diagnosis");
+    
+    symptomsPre.textContent = "Analyzing...";
+    diagnosisPre.textContent = "";
+    symptomsPre.classList.add("loading");
+
+    try {
+        const response = await fetch("/analyze", { method: "POST", body: formData });
+        const data = await response.json();
+
+        symptomsPre.classList.remove("loading");
+
+        if (data.error) {
+            alert(data.error);
+            return;
+        }
+
+        symptomsPre.textContent = data.symptoms;
+        diagnosisPre.textContent = data.diagnosis;
+
+    } catch (err) {
+        symptomsPre.classList.remove("loading");
+        alert("Error analyzing the leaf: " + err);
+    }
+});
+</script>
+</body>
+</html>
